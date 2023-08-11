@@ -1,2 +1,2 @@
-from games import roulettez
+from games import roulettez, slots, cancel_bid
 from games import arithmetic
