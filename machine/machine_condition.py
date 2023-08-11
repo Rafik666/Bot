@@ -6,5 +6,10 @@ class FSMRoulettez(StatesGroup):
     bid_money = State()
     bid = State()
     win_money = State()
+
+
+class FSMSlots(StatesGroup):
+    bid_money = State()
+    win_money = State()
     
 
