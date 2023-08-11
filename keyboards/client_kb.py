@@ -1,10 +1,12 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 b1 = KeyboardButton('/Профиль')
-b2 = KeyboardButton('/Рулетка')
-b3 = KeyboardButton('/Колесо_фартуны')
+b2 = KeyboardButton('/Топ')
+b3 = KeyboardButton('/Рулетка')
+b4 = KeyboardButton('/Колесо_фартуны')
+b5 = KeyboardButton('/Слоты')
 
 kb_client_menu = ReplyKeyboardMarkup(resize_keyboard=True)
-kb_client_menu.add(b1).row(b2,b3)
+kb_client_menu.row(b1, b2).row(b3, b4, b5)
 
 
 r1 = KeyboardButton('Черный')
