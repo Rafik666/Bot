@@ -3,8 +3,10 @@ from create_bot import dp, bot
 from keyboards import kb_client_menu
 from date_base import sqlite_db
 from games import roulettez, slots
+from aiogram.dispatcher.filters import Text
 
-'''*************Клиентская часть****************'''
+#*************Клиентская часть****************#
+
 #приветствие
 async def command_start(message: types.Message):
     await message.reply('Привет ' + message.from_user.first_name+"\n"+
@@ -41,6 +43,6 @@ roulettez.register_hendlers_roulettez(dp)
 
 def register_hendlers_client(dp : Dispatcher):
     dp.register_message_handler(command_start, commands=['start'])
-    dp.register_message_handler(command_show_profile, commands=['Профиль'])
-    dp.register_message_handler(rating_users, commands=['Топ'])
+    dp.register_message_handler(command_show_profile, Text(equals='Профиль', ignore_case=True), state="*")
+    dp.register_message_handler(rating_users, Text(equals='Топ', ignore_case=True), state="*")
     
