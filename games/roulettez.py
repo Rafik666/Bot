@@ -1,123 +1,118 @@
 from aiogram import Dispatcher, types
-from create_bot import dp
+from create_bot import dp, bot
 from date_base import sqlite_db
 from machine import machine_condition as machine
 from games import arithmetic,cancel_bid
-from keyboards import kb_client_roulettez, kb_client_menu, kb_client_cont
+from keyboards import bits
 from aiogram.types import ReplyKeyboardRemove
+from aiogram.dispatcher.filters import Text
+from games import num_let
 
 
 import random
 
+#список ставок
+list_players = {}
+numbers_player = 1
+
+
 from_roulettez = ['Рулетка крутиться, бабосы мутятся', 'Вращайте барабан']
-numbers = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,
-           18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36]
+numbers = [0,1,2,3,4,5,6,7,8,9,10,11,12]
+colors = ["🔴", "💚", "⚫️"]
 
-async def roulettez_start(message: types.Message):
-    await message.reply(random.choice(from_roulettez))
-    await machine.FSMRoulettez.bid_money.set()
-    await message.answer("Введите какую ставку хотите сделать", reply_markup=ReplyKeyboardRemove())
+def bet_countin_number(win_number, bit_pl, user, win_list, range_number, id):
+    try:
+        if win_number in range(int(bit_pl[0]), int(bit_pl[-1])):
+            win_money = 5*2
+            arithmetic.winnings_money(sqlite_db, id, win_money)
+            arithmetic.addition(sqlite_db, id, win_money)
+            win_list += f"{user.first_name} выиграл {win_money}  на {range_number}\n"
+        else:
+            win_list += f"{user.first_name} на {range_number}\n"
+        
+    except:
+        win_list = bet_countin_color(win_number, bit_pl, user, win_list, id)
+    return win_list
 
-#Начало диалога
-#@dp.message_handler(content_types=['text'], state=machine.FSMRoulettez.bid_money)
-async def load_bid_money(message: types.Message, state: machine.FSMContext):
-    async with state.proxy() as data:
-        sqlite_db.cur.execute(f"SELECT money FROM players WHERE id={message.from_user.id}")
+def bet_countin_color(win_number, bit_pl, user, win_list, id):
+    if num_let.num_let[win_number] == bit_pl[-1]:
+        win_money = 5*2
+        arithmetic.addition(sqlite_db, id, win_money)
+        arithmetic.winnings_money(sqlite_db, id, win_money)
+        win_list += f"{user.first_name} выиграл {win_money}  на {bit_pl[-1]}\n"
+    else:
+        win_list += f"{user.first_name} на {bit_pl[-1]}\n"
+    return win_list
+
+        
+    
+
+#принятия ставок/работа кнопок от бота
+@dp.callback_query_handler()
+async def command(callback: types.CallbackQuery):
+    #начальная ставка
+    
+
+    global numbers_player
+    global numbers
+    
+    #проверка нажатия на ставки
+    if (callback.data == "1 - 3" or callback.data == "4 - 6" or 
+        callback.data == "7 - 9" or callback.data=="10 - 12"
+        or callback.data == "5 на 🔴" or callback.data == "5 на ⚫️"
+        or callback.data == "5 на 💚"):
+
+        #добавления в список ставок (игроков)
+        id_player = callback.from_user.id
+        list_players[numbers_player] = {id_player : callback.data}
+
+        sqlite_db.cur.execute(f"SELECT money FROM players WHERE id={id_player}")
         user_money = sqlite_db.cur.fetchone()[0]
         
-        if message.text.isdigit():
-            if user_money >= int(message.text):
+        #проверка на кол-во денег
+        if user_money >= 5:   
+            arithmetic.subtraction(sqlite_db, id_player, 5)
+            await callback.message.answer(f"Ставка принята: {callback.from_user.first_name} 5 абобиков на {callback.data}")
+            numbers_player += 1
+        else:
+            await callback.message.answer(f"Не хватает денег, у вас на счету: {user_money}")
+    
+    #вращать барабан
+    if callback.data == "Крутить":
+        if len(list_players) != 0: 
+            win_number = random.choice(numbers)
+
+            win_list = f"Рулетка {win_number} {num_let.num_let[win_number]}\n"
+
+            for n in list_players:
+                for id in list_players[n]:
+                    range_number = list_players[n][id]
+                    bit_pl = range_number.split(" ")
+                    for id in list_players[n]:
+                        user = await bot.get_chat(id)
+                        win_list = bet_countin_number(win_number, bit_pl, user, win_list, range_number, id)
                     
-                data['bid_money'] = int(message.text)
-                await machine.FSMRoulettez.next()
-                await message.reply("""Теперь введите на что будете делать ставку:
-    цвет(красный, черный, зеленый)/номер(0-36)""", reply_markup=kb_client_roulettez)
-            else:
-                await message.reply("У вас не хватает денег, на вашем счету: "+ str(user_money))
 
-        else:
-            await message.reply("Введите число!")
+            await callback.message.answer(text=win_list)
+            list_players.clear()
+        elif len(list_players) == 0:
+            await callback.message.answer("Ставки еще не делались. Сперва сделайте ставку")
             
+#запуск коммандлы рулетки
+async def roulettez_start(message: types.Message):
+    await message.answer(text="""Минирулетка
+Угадайте число из:
+0💚
+1🔴 2⚫️ 3🔴 4⚫️ 5🔴 6⚫️
+7🔴 8⚫️ 9🔴10⚫️11🔴12⚫️
+Ставки можно текстом:
+10 на красное | 5 на 12""", reply_markup=bits)
     
-
-#Ловим ответ
-#@dp.message_handler(state=machine.FSMRoulettez.bid)
-async def load_bid(message: types.Message, state: machine.FSMContext):
-    async with state.proxy() as data:
-        
-        #проверка на текст(ставку)
-        if message.text.lower() == "черный" or message.text.lower() =="красный" or message.text.lower() == 'зеленый':
-            data['bid'] = message.text    
-    
-            await machine.FSMRoulettez.next()
-            await message.reply('Ставка сделана', reply_markup=kb_client_cont)
-            arithmetic.subtraction(sqlite_db, message.from_user.id, int(data['bid_money']))
-        
-        #проверка на номер(ставку)
-        elif message.text.isdigit():
-            if int(message.text) >=0 and int(message.text) <=36: 
-                data['bid'] = message.text    
-        
-                await machine.FSMRoulettez.next()
-                await message.reply('Ставка сделана', reply_markup=kb_client_cont)
-                arithmetic.subtraction(sqlite_db, message.from_user.id, int(data['bid_money']))
-            else:
-                await message.answer("Число должен быть в промежутке 0~36")
-        
-
-        else:
-            await message.answer("Выбрали неверный цвет *пишите 'ё' как букву'е'*")
-        
-        
-        
-        
-#Расчет
-#@dp.message_handler(state=machine.FSMRoulettez.win_money)   
-async def send_result(message: types.Message, state: machine.FSMContext):
-
-    v_int = int(random.choice(numbers))
-    v_color = random.choice(['черный', 'красный','зеленый'])
-        
-    
-    async with state.proxy() as data:
-        prize = 0
-        if data['bid'].isdigit():
-            if int(data['bid']) == v_int:
-                if v_int == 0:
-                    coefficient = 5
-                else:
-                    coefficient = 2
-                prize = int(data['bid_money'])*coefficient
-                arithmetic.addition(sqlite_db, message.from_user.id, prize)
-                await message.answer("Поздравляю! Ваш выигрышь "+str(prize), reply_markup=kb_client_menu)  
-                
-        if data['bid'].lower() == v_color:
-            if v_color == 'зеленый':
-                coefficient = 3
-            else:
-                coefficient = 2
-            prize = int(data['bid_money'])*coefficient
-
-            arithmetic.addition(sqlite_db, message.from_user.id, prize)
-            await message.answer("Поздравляю! Ваш выигрышь: "+str(prize), reply_markup=kb_client_menu)
-        else:
-            if data['bid'].isdigit():
-                result = v_int
-            else:
-                result = v_color
-            await message.answer("К сожалению, вы проиграли\n"+'Выпало: '+ str(result), reply_markup=kb_client_menu)
-        
-        data['win_money'] = prize
-        arithmetic.winnings_money(sqlite_db, message.from_user.id, data['win_money'])
-    await state.finish()
 
 
 
 cancel_bid.register_hendlers_cancel(dp)
 
 def register_hendlers_roulettez(dp : Dispatcher):
-    dp.register_message_handler(roulettez_start, commands=['рулетка', 'roulettez'])
-    dp.register_message_handler(load_bid_money, content_types=['text'], state=machine.FSMRoulettez.bid_money)
-    dp.register_message_handler(load_bid, state=machine.FSMRoulettez.bid)
-    dp.register_message_handler(send_result, state=machine.FSMRoulettez.win_money)
-    
+    dp.register_message_handler(roulettez_start, Text(equals='Рулетка', ignore_case=True), state="*")
+   

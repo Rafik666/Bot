@@ -62,7 +62,7 @@ cancel_bid.register_hendlers_cancel(dp)
 
 
 def register_hendlers_slots(dp: Dispatcher):
-    dp.register_message_handler(slots_start, commands='слоты')
+    dp.register_message_handler(slots_start, Text(equals='Слоты', ignore_case=True), state="*")
     dp.register_message_handler(load_bid_money, content_types=['text'], state=machine.FSMSlots.bid_money)
     dp.register_message_handler(send_result, state=machine.FSMSlots.win_money)
     
