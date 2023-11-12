@@ -17,3 +17,8 @@ def winnings_money(bd, id, win):
     bd.base.commit()
 
 
+def losting_money(bd, id, lost):
+    old_values = bd.base.execute(f'SELECT lost FROM players WHERE id={id}').fetchone()[0]
+    bd.base.execute(f'UPDATE players SET lost = {old_values+lost} WHERE id={id}')
+    bd.base.commit()
+

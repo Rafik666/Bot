@@ -13,7 +13,7 @@ elemets_slots = ['🍌', '7️⃣', '🍋', '🍒', '🍓']
 async def slots_start(message: types.Message):
     
     await machine.FSMSlots.bid_money.set()
-    await message.reply("Введите какую ставку хотите сделать", reply_markup=ReplyKeyboardRemove())
+    await message.answer("Введите какую ставку хотите сделать", reply_markup=ReplyKeyboardRemove())
 
 async def load_bid_money(message: types.Message, state: machine.FSMContext):
     async with state.proxy() as data:
@@ -52,6 +52,8 @@ async def send_result(message: types.Message, state: machine.FSMContext):
             arithmetic.addition(sqlite_db, message.from_user.id, prize)
             await message.answer("Поздравляю! Ваш выигрышь "+ str(prize)+"\nВыпало: "+ v1+v2+v3 , reply_markup=kb_client_menu)  
         else:
+          
+            arithmetic.losting_money(sqlite_db, message.from_user.id, data['bid_money'])
             await message.answer("К сожалению, вы проиграли\n"+'Выпало: '+ v1+v2+v3, reply_markup=kb_client_menu)
         data['win_money'] = prize
         arithmetic.winnings_money(sqlite_db, message.from_user.id, data['win_money'])

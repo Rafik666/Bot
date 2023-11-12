@@ -21,13 +21,17 @@ numbers = [0,1,2,3,4,5,6,7,8,9,10,11,12]
 colors = ["🔴", "💚", "⚫️"]
 
 def bet_countin_number(win_number, bit_pl, user, win_list, range_number, id):
+    user_money = 5
     try:
         if win_number in range(int(bit_pl[0]), int(bit_pl[-1])):
-            win_money = 5*2
+            
+            win_money = user_money*2
             arithmetic.winnings_money(sqlite_db, id, win_money)
             arithmetic.addition(sqlite_db, id, win_money)
             win_list += f"{user.first_name} выиграл {win_money}  на {range_number}\n"
         else:
+            
+            arithmetic.losting_money(sqlite_db, id, user_money)
             win_list += f"{user.first_name} на {range_number}\n"
         
     except:
@@ -35,12 +39,14 @@ def bet_countin_number(win_number, bit_pl, user, win_list, range_number, id):
     return win_list
 
 def bet_countin_color(win_number, bit_pl, user, win_list, id):
+    user_money = 5
     if num_let.num_let[win_number] == bit_pl[-1]:
-        win_money = 5*2
+        win_money = user_money*2
         arithmetic.addition(sqlite_db, id, win_money)
         arithmetic.winnings_money(sqlite_db, id, win_money)
         win_list += f"{user.first_name} выиграл {win_money}  на {bit_pl[-1]}\n"
     else:
+        arithmetic.losting_money(sqlite_db, id, user_money)
         win_list += f"{user.first_name} на {bit_pl[-1]}\n"
     return win_list
 
