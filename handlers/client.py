@@ -9,7 +9,7 @@ from aiogram.dispatcher.filters import Text
 
 #приветствие
 async def command_start(message: types.Message):
-    await message.reply('Привет ' + message.from_user.first_name+"\n"+
+    await message.answer('Привет ' + message.from_user.first_name+"\n"+
                         """Добро пожаловать на MegaLot_Casino, это бесплатный телеграм-казино для развлечения с друзьями(если они есть).
 Тут проводять розыгрыши раз в 3 дня. Есть рулетка, колесо фартуны и ...(на стадии разроботки).\n
 В Начале ты получаешь 100§""", reply_markup=kb_client_menu)
@@ -17,12 +17,12 @@ async def command_start(message: types.Message):
     #проверка на наличие польщователя в бд    
     sqlite_db.cur.execute(f"SELECT id FROM players WHERE id={message.from_user.id}")
     if sqlite_db.cur.fetchone() is None:
-        await sqlite_db.sql_add_command(state=(message.from_user.first_name, message.from_user.id, 100, 0))
+        await sqlite_db.sql_add_command(state=(message.from_user.first_name, message.from_user.id, 100, 0, 0, 0, 0))
     
 async def command_show_profile(message: types.Message):
     sqlite_db.cur.execute((f"SELECT * FROM players WHERE id={message.from_user.id}"))
-    name, id, money, win_money = sqlite_db.cur.fetchone()
-    await message.reply(f"Имя - {name}\nКоличество денег - {money}§\nВыигранные деньги: +{win_money}§")
+    name, id, money, win_money, lost_money, max_win, max_bit = sqlite_db.cur.fetchone()
+    await message.answer(f"{name}\nНалик в кармане: {money}§\nВыиграно: {win_money}§\nПроиграно: {lost_money}§\nМакс. выиграш: {max_win}§\nМакс. ставка: {max_bit}§")
 
 async def rating_users(message: types.Message):
     sqlite_db.cur.execute('SELECT users, money FROM players ORDER BY money DESC')
@@ -33,7 +33,7 @@ async def rating_users(message: types.Message):
         for row in result:
             text += row[0] +" - "+str(row[1])+'§\n'
             i += 1        
-    await message.reply(text)  
+    await message.answer(text)  
 
 
 
