@@ -10,7 +10,7 @@ from aiogram.dispatcher.filters import Text
 #приветствие
 async def command_start(message: types.Message):
     await message.answer('Привет ' + message.from_user.first_name+"\n"+
-                        """Добро пожаловать на MegaLot_Casino, это бесплатный телеграм-казино для развлечения с друзьями(если они есть).
+                        """Добро пожаловать на Abobik_Casino, это бесплатный телеграм-казино для развлечения с друзьями(если они есть).
 Тут проводять розыгрыши раз в 3 дня. Есть рулетка, колесо фартуны и ...(на стадии разроботки).\n
 В Начале ты получаешь 100§""", reply_markup=kb_client_menu)
 

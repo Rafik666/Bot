@@ -13,10 +13,10 @@ bit_5_on_red = InlineKeyboardButton(text="5 на 🔴", callback_data="5 на �
 bit_5_on_black = InlineKeyboardButton(text="5 на ⚫️" ,callback_data="5 на ⚫️")
 bit_5_on_green = InlineKeyboardButton(text="5 на 💚" ,callback_data="5 на 💚")
 
-but_repeat = InlineKeyboardButton(text="Повторить", callback_data="Повторить")
+
 but_double = InlineKeyboardButton(text="Удвоить", callback_data="Удвоить")
 bur_rotate = InlineKeyboardButton(text="Крутить", callback_data="Крутить")
 
 
-bits.row(bit1_3, bit4_6, bit7_9, bit10_12).row(bit_5_on_red, bit_5_on_black, bit_5_on_green).row(but_repeat, but_double, bur_rotate)
+bits.row(bit1_3, bit4_6, bit7_9, bit10_12).row(bit_5_on_red, bit_5_on_black, bit_5_on_green).row(but_double, bur_rotate)
 
