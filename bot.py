@@ -13,6 +13,6 @@ from handlers import client, admin
 
 
 client.register_hendlers_client(dp)
-#other.register_handler_other(dp)
+admin.register_hendlers_client(dp)
 
 executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
